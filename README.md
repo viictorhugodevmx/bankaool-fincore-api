@@ -104,11 +104,19 @@ Si se te desacomoda el markdown por los bloques internos, pégalo por secciones,
 
 ---
 
-# 22. Commit del Paso 3
+## Seed users
 
-Cuando build y Postman estén bien:
+Run:
 
 ```bash
-git status
-git add .
-git commit -m "feat: add auth module with jwt"
+npm run seed
+
+Default users:
+
+Role	Email	Password
+admin	admin@bankaool.test	Password123
+operator	operator@bankaool.test	Password123
+customer	victor.customer@bankaool.test	Password123
+customer	andrea.customer@bankaool.test	Password123
+
+---
