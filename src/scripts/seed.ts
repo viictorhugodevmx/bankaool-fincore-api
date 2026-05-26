@@ -1,11 +1,17 @@
+import mongoose from 'mongoose';
+
 import { connectDatabase } from '../config/database';
-import { USER_ROLES, UserRole } from '../constants/roles';
-import { CUSTOMER_STATUS ,USER_STATUS } from '../constants/status';
 import { env } from '../config/env';
+import { USER_ROLES, UserRole } from '../constants/roles';
+import {
+  ACCOUNT_STATUS,
+  CUSTOMER_STATUS,
+  USER_STATUS,
+} from '../constants/status';
+import { Account } from '../modules/accounts/account.model';
+import { Customer } from '../modules/customers/customer.model';
 import { User } from '../modules/users/user.model';
 import { hashPassword } from '../utils/password';
-import mongoose from 'mongoose';
-import { Customer } from '../modules/customers/customer.model';
 
 type SeedUser = {
   name: string;
@@ -48,6 +54,18 @@ const seed = async () => {
 
     await connectDatabase();
 
+    await Account.deleteMany({
+      accountNumber: {
+        $in: ['BK3600000001', 'BK3600000002'],
+      },
+    });
+
+    await Customer.deleteMany({
+      email: {
+        $in: ['victor.customer@bankaool.test', 'andrea.customer@bankaool.test'],
+      },
+    });
+
     await User.deleteMany({
       email: {
         $in: seedUsers.map((user) => user.email),
@@ -66,12 +84,6 @@ const seed = async () => {
 
     const createdUsers = await User.insertMany(usersToCreate);
 
-    await Customer.deleteMany({
-      email: {
-        $in: ['victor.customer@bankaool.test', 'andrea.customer@bankaool.test'],
-      },
-    });
-
     const victorUser = createdUsers.find(
       (user) => user.email === 'victor.customer@bankaool.test'
     );
@@ -84,7 +96,7 @@ const seed = async () => {
       throw new Error('Customer seed users were not created correctly');
     }
 
-    await Customer.insertMany([
+    const createdCustomers = await Customer.insertMany([
       {
         userId: victorUser._id,
         fullName: 'Victor Customer',
@@ -109,13 +121,51 @@ const seed = async () => {
       },
     ]);
 
-    console.log('Seed users created successfully:');
-    console.log('- Victor Customer | active | low risk');
-    console.log('- Andrea Customer | pending_kyc | medium risk');
+    const victorCustomer = createdCustomers.find(
+      (customer) => customer.email === 'victor.customer@bankaool.test'
+    );
 
+    const andreaCustomer = createdCustomers.find(
+      (customer) => customer.email === 'andrea.customer@bankaool.test'
+    );
+
+    if (!victorCustomer || !andreaCustomer) {
+      throw new Error('Customer profiles were not created correctly');
+    }
+
+    await Account.insertMany([
+      {
+        customerId: victorCustomer._id,
+        accountNumber: 'BK3600000001',
+        balance: 75000,
+        currency: 'MXN',
+        status: ACCOUNT_STATUS.ACTIVE,
+        dailyLimit: 25000,
+        monthlyLimit: 150000,
+      },
+      {
+        customerId: andreaCustomer._id,
+        accountNumber: 'BK3600000002',
+        balance: 42000,
+        currency: 'MXN',
+        status: ACCOUNT_STATUS.ACTIVE,
+        dailyLimit: 15000,
+        monthlyLimit: 90000,
+      },
+    ]);
+
+    console.log('Seed users created successfully:');
     createdUsers.forEach((user) => {
       console.log(`- ${user.name} | ${user.email} | ${user.role}`);
     });
+
+    console.log('Seed customers created successfully:');
+    console.log('- Victor Customer | active | low risk');
+    console.log('- Andrea Customer | pending_kyc | medium risk');
+
+    console.log('Seed accounts created successfully:');
+    console.log('- BK3600000001 | Victor Customer | 75000 MXN');
+    console.log('- BK3600000002 | Andrea Customer | 42000 MXN');
 
     console.log('Seed completed successfully');
   } catch (error) {

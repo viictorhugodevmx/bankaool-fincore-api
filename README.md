@@ -150,3 +150,31 @@ pending_kyc
 active
 blocked
 rejected
+
+## Accounts endpoints
+
+Protected endpoints for admin and operator roles.
+
+### Create account
+
+```http
+POST /api/accounts
+
+Body:
+
+{
+  "customerId": "customer_id",
+  "initialBalance": 10000,
+  "currency": "MXN",
+  "dailyLimit": 10000,
+  "monthlyLimit": 80000
+}
+
+List accounts
+GET /api/accounts
+Get account detail
+GET /api/accounts/:id
+Get accounts by customer
+GET /api/accounts/customer/:customerId
+
+---

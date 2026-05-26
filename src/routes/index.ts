@@ -4,6 +4,7 @@ import { validate } from '../middlewares/validate.middleware';
 import { AppError } from '../utils/app-error';
 import authRoutes from '../modules/auth/auth.routes';
 import customerRoutes from '../modules/customers/customer.routes';
+import accountRoutes from '../modules/accounts/account.routes';
 
 const router = Router();
 
@@ -45,5 +46,6 @@ router.get('/dev/error-test', (_req, _res, next) => {
 
 router.use('/auth', authRoutes);
 router.use('/customers', customerRoutes);
+router.use('/accounts', accountRoutes);
 
 export default router;
