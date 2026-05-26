@@ -120,3 +120,33 @@ customer	victor.customer@bankaool.test	Password123
 customer	andrea.customer@bankaool.test	Password123
 
 ---
+
+## Customers / KYC endpoints
+
+Protected endpoints for admin and operator roles.
+
+### List customers
+
+```http
+GET /api/customers
+
+Header:
+
+Authorization: Bearer <admin_or_operator_token>
+Get customer detail
+GET /api/customers/:id
+Update customer KYC status
+PATCH /api/customers/:id/status
+
+Body:
+
+{
+  "kycStatus": "active"
+}
+
+Allowed statuses:
+
+pending_kyc
+active
+blocked
+rejected

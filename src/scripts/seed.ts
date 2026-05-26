@@ -1,10 +1,11 @@
 import { connectDatabase } from '../config/database';
 import { USER_ROLES, UserRole } from '../constants/roles';
-import { USER_STATUS } from '../constants/status';
+import { CUSTOMER_STATUS ,USER_STATUS } from '../constants/status';
 import { env } from '../config/env';
 import { User } from '../modules/users/user.model';
 import { hashPassword } from '../utils/password';
 import mongoose from 'mongoose';
+import { Customer } from '../modules/customers/customer.model';
 
 type SeedUser = {
   name: string;
@@ -65,7 +66,52 @@ const seed = async () => {
 
     const createdUsers = await User.insertMany(usersToCreate);
 
+    await Customer.deleteMany({
+      email: {
+        $in: ['victor.customer@bankaool.test', 'andrea.customer@bankaool.test'],
+      },
+    });
+
+    const victorUser = createdUsers.find(
+      (user) => user.email === 'victor.customer@bankaool.test'
+    );
+
+    const andreaUser = createdUsers.find(
+      (user) => user.email === 'andrea.customer@bankaool.test'
+    );
+
+    if (!victorUser || !andreaUser) {
+      throw new Error('Customer seed users were not created correctly');
+    }
+
+    await Customer.insertMany([
+      {
+        userId: victorUser._id,
+        fullName: 'Victor Customer',
+        email: 'victor.customer@bankaool.test',
+        phone: '9610000001',
+        taxId: 'VICU900101ABC',
+        occupation: 'Frontend Developer',
+        monthlyIncome: 65000,
+        kycStatus: CUSTOMER_STATUS.ACTIVE,
+        riskLevel: 'low',
+      },
+      {
+        userId: andreaUser._id,
+        fullName: 'Andrea Customer',
+        email: 'andrea.customer@bankaool.test',
+        phone: '9610000002',
+        taxId: 'ANCU920202XYZ',
+        occupation: 'Product Manager',
+        monthlyIncome: 72000,
+        kycStatus: CUSTOMER_STATUS.PENDING_KYC,
+        riskLevel: 'medium',
+      },
+    ]);
+
     console.log('Seed users created successfully:');
+    console.log('- Victor Customer | active | low risk');
+    console.log('- Andrea Customer | pending_kyc | medium risk');
 
     createdUsers.forEach((user) => {
       console.log(`- ${user.name} | ${user.email} | ${user.role}`);
