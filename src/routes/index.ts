@@ -6,6 +6,7 @@ import authRoutes from '../modules/auth/auth.routes';
 import customerRoutes from '../modules/customers/customer.routes';
 import accountRoutes from '../modules/accounts/account.routes';
 import movementRoutes from '../modules/movements/movement.routes';
+import transferRoutes from '../modules/transfers/transfer.routes';
 
 const router = Router();
 
@@ -49,5 +50,6 @@ router.use('/auth', authRoutes);
 router.use('/customers', customerRoutes);
 router.use('/accounts', accountRoutes);
 router.use('/', movementRoutes);
+router.use('/transfers', transferRoutes);
 
 export default router;

@@ -187,3 +187,22 @@ Protected endpoint for admin and operator roles.
 
 ```http
 GET /api/accounts/:accountId/movements
+
+
+## Transfers endpoints
+
+Protected endpoint for admin and operator roles.
+
+### Create transfer
+
+```http
+POST /api/transfers
+
+Body:
+
+{
+  "fromAccountId": "from_account_id",
+  "toAccountId": "to_account_id",
+  "amount": 5000,
+  "description": "Internal transfer test"
+}
