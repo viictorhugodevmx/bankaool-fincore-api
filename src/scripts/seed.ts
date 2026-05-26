@@ -6,10 +6,12 @@ import { USER_ROLES, UserRole } from '../constants/roles';
 import {
   ACCOUNT_STATUS,
   CUSTOMER_STATUS,
+  MOVEMENT_TYPE,
   USER_STATUS,
 } from '../constants/status';
 import { Account } from '../modules/accounts/account.model';
 import { Customer } from '../modules/customers/customer.model';
+import { Movement } from '../modules/movements/movement.model';
 import { User } from '../modules/users/user.model';
 import { hashPassword } from '../utils/password';
 
@@ -53,6 +55,8 @@ const seed = async () => {
     console.log(`Environment: ${env.nodeEnv}`);
 
     await connectDatabase();
+
+    await Movement.deleteMany({});
 
     await Account.deleteMany({
       accountNumber: {
@@ -133,7 +137,7 @@ const seed = async () => {
       throw new Error('Customer profiles were not created correctly');
     }
 
-    await Account.insertMany([
+    const createdAccounts = await Account.insertMany([
       {
         customerId: victorCustomer._id,
         accountNumber: 'BK3600000001',
@@ -154,6 +158,45 @@ const seed = async () => {
       },
     ]);
 
+    const victorAccount = createdAccounts.find(
+      (account) => account.accountNumber === 'BK3600000001'
+    );
+
+    const andreaAccount = createdAccounts.find(
+      (account) => account.accountNumber === 'BK3600000002'
+    );
+
+    if (!victorAccount || !andreaAccount) {
+      throw new Error('Seed accounts were not created correctly');
+    }
+
+    await Movement.insertMany([
+      {
+        accountId: victorAccount._id,
+        type: MOVEMENT_TYPE.DEPOSIT,
+        amount: 50000,
+        balanceAfter: 50000,
+        description: 'Initial funding deposit',
+        reference: 'SEED-VIC-DEP-001',
+      },
+      {
+        accountId: victorAccount._id,
+        type: MOVEMENT_TYPE.DEPOSIT,
+        amount: 25000,
+        balanceAfter: 75000,
+        description: 'Payroll deposit',
+        reference: 'SEED-VIC-DEP-002',
+      },
+      {
+        accountId: andreaAccount._id,
+        type: MOVEMENT_TYPE.DEPOSIT,
+        amount: 42000,
+        balanceAfter: 42000,
+        description: 'Initial funding deposit',
+        reference: 'SEED-AND-DEP-001',
+      },
+    ]);
+
     console.log('Seed users created successfully:');
     createdUsers.forEach((user) => {
       console.log(`- ${user.name} | ${user.email} | ${user.role}`);
@@ -166,6 +209,10 @@ const seed = async () => {
     console.log('Seed accounts created successfully:');
     console.log('- BK3600000001 | Victor Customer | 75000 MXN');
     console.log('- BK3600000002 | Andrea Customer | 42000 MXN');
+
+    console.log('Seed movements created successfully:');
+    console.log('- Victor account | 2 deposits');
+    console.log('- Andrea account | 1 deposit');
 
     console.log('Seed completed successfully');
   } catch (error) {

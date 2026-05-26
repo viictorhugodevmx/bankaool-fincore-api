@@ -178,3 +178,12 @@ Get accounts by customer
 GET /api/accounts/customer/:customerId
 
 ---
+
+## Movements endpoints
+
+Protected endpoint for admin and operator roles.
+
+### Get account movements
+
+```http
+GET /api/accounts/:accountId/movements
