@@ -206,3 +206,20 @@ Body:
   "amount": 5000,
   "description": "Internal transfer test"
 }
+
+## Transfer risk engine
+
+The transfer module includes a simple risk engine.
+
+A transfer can be:
+
+- completed
+- pending_review
+
+Risk rules:
+
+- Amount greater than or equal to 20000
+- Amount exceeds account daily limit
+- Suspicious words in description
+
+Pending review transfers do not move money until an operator approves them.

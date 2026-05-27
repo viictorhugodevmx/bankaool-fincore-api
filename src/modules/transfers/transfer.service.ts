@@ -9,6 +9,7 @@ import { Movement } from '../movements/movement.model';
 import { AppError } from '../../utils/app-error';
 import { Transfer, TransferDocument } from './transfer.model';
 import { TransferResponse } from './transfer.types';
+import { evaluateTransferRisk } from './risk-engine.service';
 
 type CreateTransferInput = {
   fromAccountId: string;
@@ -25,6 +26,8 @@ const sanitizeTransfer = (transfer: TransferDocument): TransferResponse => ({
   status: transfer.status,
   description: transfer.description,
   reference: transfer.reference,
+  riskScore: transfer.riskScore,
+  riskReasons: transfer.riskReasons,
   createdAt: transfer.createdAt,
   updatedAt: transfer.updatedAt,
 });
@@ -74,13 +77,34 @@ export const createTransfer = async (
     throw new AppError('Insufficient balance', 400);
   }
 
+  const reference = generateTransferReference();
+
+  const riskResult = evaluateTransferRisk({
+    amount: payload.amount,
+    description: payload.description,
+    fromAccount,
+  });
+
+  if (riskResult.requiresReview) {
+    const transfer = await Transfer.create({
+      fromAccountId: fromAccount._id,
+      toAccountId: toAccount._id,
+      amount: payload.amount,
+      status: TRANSFER_STATUS.PENDING_REVIEW,
+      description: payload.description,
+      reference,
+      riskScore: riskResult.riskScore,
+      riskReasons: riskResult.riskReasons,
+    });
+
+    return sanitizeTransfer(transfer);
+  }
+
   fromAccount.balance -= payload.amount;
   toAccount.balance += payload.amount;
 
   await fromAccount.save();
   await toAccount.save();
-
-  const reference = generateTransferReference();
 
   const transfer = await Transfer.create({
     fromAccountId: fromAccount._id,
@@ -89,6 +113,8 @@ export const createTransfer = async (
     status: TRANSFER_STATUS.COMPLETED,
     description: payload.description,
     reference,
+    riskScore: riskResult.riskScore,
+    riskReasons: riskResult.riskReasons,
   });
 
   await Movement.insertMany([

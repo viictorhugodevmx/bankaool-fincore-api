@@ -8,6 +8,8 @@ export type TransferDocument = Document & {
   status: TransferStatus;
   description: string;
   reference: string;
+  riskScore: number;
+  riskReasons: string[];
   createdAt: Date;
   updatedAt: Date;
 };
@@ -44,6 +46,16 @@ const transferSchema = new Schema<TransferDocument>(
       required: [true, 'Reference is required'],
       unique: true,
       trim: true,
+    },
+    riskScore: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: 0,
+    },
+    riskReasons: {
+      type: [String],
+      default: [],
     },
   },
   {

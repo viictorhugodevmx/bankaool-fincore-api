@@ -8,6 +8,8 @@ export type TransferResponse = {
   status: TransferStatus;
   description: string;
   reference: string;
+  riskScore: number;
+  riskReasons: string[];
   createdAt: Date;
   updatedAt: Date;
 };
