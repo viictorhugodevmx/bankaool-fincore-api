@@ -223,3 +223,16 @@ Risk rules:
 - Suspicious words in description
 
 Pending review transfers do not move money until an operator approves them.
+
+## Operations endpoints
+
+Protected endpoints for admin and operator roles.
+
+### Pending review transfers
+
+```http
+GET /api/operations/transfers/pending-review
+Approve transfer
+PATCH /api/operations/transfers/:id/approve
+Reject transfer
+PATCH /api/operations/transfers/:id/reject
