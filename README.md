@@ -236,3 +236,14 @@ Approve transfer
 PATCH /api/operations/transfers/:id/approve
 Reject transfer
 PATCH /api/operations/transfers/:id/reject
+
+## Operational blocking endpoints
+
+### Block customer
+
+```http
+PATCH /api/operations/customers/:id/block
+Block account
+PATCH /api/operations/accounts/:id/block
+Unblock account
+PATCH /api/operations/accounts/:id/unblock

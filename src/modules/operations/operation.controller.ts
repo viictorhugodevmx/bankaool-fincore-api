@@ -4,8 +4,11 @@ import { AppError } from '../../utils/app-error';
 import { sendSuccess } from '../../utils/response';
 import {
   approvePendingTransfer,
+  blockAccount,
+  blockCustomer,
   getPendingReviewTransfers,
   rejectPendingTransfer,
+  unblockAccount,
 } from './operation.service';
 
 const getParamAsString = (param: string | string[] | undefined): string => {
@@ -33,7 +36,6 @@ export const listPendingReviewTransfers = asyncHandler(
 
 export const approveTransfer = asyncHandler(async (req, res: Response) => {
   const transferId = getParamAsString(req.params.id);
-
   const data = await approvePendingTransfer(transferId);
 
   return sendSuccess({
@@ -45,7 +47,6 @@ export const approveTransfer = asyncHandler(async (req, res: Response) => {
 
 export const rejectTransfer = asyncHandler(async (req, res: Response) => {
   const transferId = getParamAsString(req.params.id);
-
   const data = await rejectPendingTransfer(transferId);
 
   return sendSuccess({
@@ -54,3 +55,42 @@ export const rejectTransfer = asyncHandler(async (req, res: Response) => {
     data,
   });
 });
+
+export const blockCustomerOperation = asyncHandler(
+  async (req, res: Response) => {
+    const customerId = getParamAsString(req.params.id);
+    const data = await blockCustomer(customerId);
+
+    return sendSuccess({
+      res,
+      message: 'Customer blocked successfully',
+      data,
+    });
+  }
+);
+
+export const blockAccountOperation = asyncHandler(
+  async (req, res: Response) => {
+    const accountId = getParamAsString(req.params.id);
+    const data = await blockAccount(accountId);
+
+    return sendSuccess({
+      res,
+      message: 'Account blocked successfully',
+      data,
+    });
+  }
+);
+
+export const unblockAccountOperation = asyncHandler(
+  async (req, res: Response) => {
+    const accountId = getParamAsString(req.params.id);
+    const data = await unblockAccount(accountId);
+
+    return sendSuccess({
+      res,
+      message: 'Account unblocked successfully',
+      data,
+    });
+  }
+);

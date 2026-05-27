@@ -1,12 +1,17 @@
 import { Types } from 'mongoose';
 import {
+  ACCOUNT_STATUS,
+  CUSTOMER_STATUS,
   MOVEMENT_TYPE,
   TRANSFER_STATUS,
 } from '../../constants/status';
 import { Account } from '../accounts/account.model';
+import { Customer, CustomerDocument } from '../customers/customer.model';
 import { Movement } from '../movements/movement.model';
 import { Transfer, TransferDocument } from '../transfers/transfer.model';
 import { TransferResponse } from '../transfers/transfer.types';
+import { AccountResponse } from '../accounts/account.types';
+import { CustomerResponse } from '../customers/customer.types';
 import { AppError } from '../../utils/app-error';
 
 const sanitizeTransfer = (transfer: TransferDocument): TransferResponse => ({
@@ -21,6 +26,34 @@ const sanitizeTransfer = (transfer: TransferDocument): TransferResponse => ({
   riskReasons: transfer.riskReasons,
   createdAt: transfer.createdAt,
   updatedAt: transfer.updatedAt,
+});
+
+const sanitizeAccount = (account: AccountResponse & { _id?: unknown }): AccountResponse => ({
+  id: String(account._id ?? account.id),
+  customerId: account.customerId.toString(),
+  accountNumber: account.accountNumber,
+  balance: account.balance,
+  currency: account.currency,
+  status: account.status,
+  dailyLimit: account.dailyLimit,
+  monthlyLimit: account.monthlyLimit,
+  createdAt: account.createdAt,
+  updatedAt: account.updatedAt,
+});
+
+const sanitizeCustomer = (customer: CustomerDocument): CustomerResponse => ({
+  id: customer._id.toString(),
+  userId: customer.userId.toString(),
+  fullName: customer.fullName,
+  email: customer.email,
+  phone: customer.phone,
+  taxId: customer.taxId,
+  occupation: customer.occupation,
+  monthlyIncome: customer.monthlyIncome,
+  kycStatus: customer.kycStatus,
+  riskLevel: customer.riskLevel,
+  createdAt: customer.createdAt,
+  updatedAt: customer.updatedAt,
 });
 
 export const getPendingReviewTransfers = async (): Promise<TransferResponse[]> => {
@@ -57,6 +90,14 @@ export const approvePendingTransfer = async (
 
   if (!toAccount) {
     throw new AppError('To account not found', 404);
+  }
+
+  if (fromAccount.status !== ACCOUNT_STATUS.ACTIVE) {
+    throw new AppError('From account is not active', 400);
+  }
+
+  if (toAccount.status !== ACCOUNT_STATUS.ACTIVE) {
+    throw new AppError('To account is not active', 400);
   }
 
   if (fromAccount.balance < transfer.amount) {
@@ -115,4 +156,80 @@ export const rejectPendingTransfer = async (
   await transfer.save();
 
   return sanitizeTransfer(transfer);
+};
+
+export const blockCustomer = async (
+  customerId: string
+): Promise<CustomerResponse> => {
+  if (!Types.ObjectId.isValid(customerId)) {
+    throw new AppError('Invalid customer id', 400);
+  }
+
+  const customer = await Customer.findByIdAndUpdate(
+    customerId,
+    {
+      kycStatus: CUSTOMER_STATUS.BLOCKED,
+      riskLevel: 'high',
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  if (!customer) {
+    throw new AppError('Customer not found', 404);
+  }
+
+  return sanitizeCustomer(customer);
+};
+
+export const blockAccount = async (
+  accountId: string
+): Promise<AccountResponse> => {
+  if (!Types.ObjectId.isValid(accountId)) {
+    throw new AppError('Invalid account id', 400);
+  }
+
+  const account = await Account.findByIdAndUpdate(
+    accountId,
+    {
+      status: ACCOUNT_STATUS.BLOCKED,
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  if (!account) {
+    throw new AppError('Account not found', 404);
+  }
+
+  return sanitizeAccount(account as unknown as AccountResponse & { _id: unknown });
+};
+
+export const unblockAccount = async (
+  accountId: string
+): Promise<AccountResponse> => {
+  if (!Types.ObjectId.isValid(accountId)) {
+    throw new AppError('Invalid account id', 400);
+  }
+
+  const account = await Account.findByIdAndUpdate(
+    accountId,
+    {
+      status: ACCOUNT_STATUS.ACTIVE,
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  if (!account) {
+    throw new AppError('Account not found', 404);
+  }
+
+  return sanitizeAccount(account as unknown as AccountResponse & { _id: unknown });
 };
