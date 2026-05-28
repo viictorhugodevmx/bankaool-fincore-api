@@ -2,6 +2,19 @@
 
 Backend fintech simulation for the Bankaool FinCore 360 lab.
 
+This API simulates a basic fintech/banking operational flow:
+
+- Users and roles
+- Customer/KYC profiles
+- Digital accounts
+- Account movements
+- Internal transfers
+- Risk review
+- Operational approval/rejection
+- Customer/account blocking
+- Dashboard metrics
+- Audit logs
+
 ## Stack
 
 - Node.js 20.19.4
@@ -9,106 +22,26 @@ Backend fintech simulation for the Bankaool FinCore 360 lab.
 - Express
 - MongoDB 6.0.20
 - Mongoose
+- JWT
+- bcrypt
+- Zod
 - Postman
+
+## Roles
+
+- admin
+- operator
+- customer
 
 ## Run project
 
 ```bash
 npm install
 npm run dev
-```
 
-## Health check
-GET http://localhost:4000/api/health
-
-## Expected response:
-
-{
-  "success": true,
-  "message": "Bankaool FinCore 360 API is running",
-  "data": {
-    "service": "bankaool-fincore-api",
-    "status": "ok"
-  }
-}
-
-# Postman
-
-The Postman collection is available at:
-
-postman/Bankaool-FinCore-360-API.postman_collection.json
-
-
-Ojo: cuando pegues esto, si se te rompe por los bloques markdown internos, puedes pegarlo manualmente por secciones.
-
-## Development test endpoints
-
-Temporary endpoints used to validate middlewares and error handling.
-
-### Validation success
-
-```http
-POST /api/dev/validate-test
-```
-Body:
-
-{
-  "name": "Victor",
-  "amount": 500
-}
-Validation error
-POST /api/dev/validate-test
-
-Body:
-
-{
-  "name": "V",
-  "amount": -10
-}
-Controlled error
-GET /api/dev/error-test
-
-Si el markdown se te acomoda raro, no pasa nada; lo importante es que quede documentado.
-
-## Auth endpoints
-
-### Register
-
-```http
-POST /api/auth/register
-```
-{
-  "name": "Victor Customer",
-  "email": "victor.customer@bankaool.test",
-  "password": "Password123",
-  "role": "customer"
-}
-
-Login
-POST /api/auth/login
-
-Body:
-
-{
-  "email": "victor.customer@bankaool.test",
-  "password": "Password123"
-}
-Current user
-GET /api/auth/me
-
-Header:
-
-Authorization: Bearer <token>
-
-Si se te desacomoda el markdown por los bloques internos, pégalo por secciones, como hemos hecho.
-
----
-
-## Seed users
-
-Run:
-
-```bash
+Build
+npm run build
+Seed
 npm run seed
 
 Default users:
@@ -118,170 +51,93 @@ admin	admin@bankaool.test	Password123
 operator	operator@bankaool.test	Password123
 customer	victor.customer@bankaool.test	Password123
 customer	andrea.customer@bankaool.test	Password123
+Environment variables
 
----
+Create a .env file based on .env.example.
 
-## Customers / KYC endpoints
+PORT=4000
+NODE_ENV=development
+MONGO_URI=mongodb://127.0.0.1:27017/bankaool_fincore_360
+JWT_SECRET=replace_with_your_secret
+JWT_EXPIRES_IN=1d
+Main endpoints
+Health
+GET /api/health
+Auth
+POST /api/auth/register
+POST /api/auth/login
+GET /api/auth/me
+Customers / KYC
 
-Protected endpoints for admin and operator roles.
+Protected for admin/operator.
 
-### List customers
-
-```http
 GET /api/customers
-
-Header:
-
-Authorization: Bearer <admin_or_operator_token>
-Get customer detail
 GET /api/customers/:id
-Update customer KYC status
 PATCH /api/customers/:id/status
 
-Body:
-
-{
-  "kycStatus": "active"
-}
-
-Allowed statuses:
+Allowed KYC statuses:
 
 pending_kyc
 active
 blocked
 rejected
+Accounts
 
-## Accounts endpoints
+Protected for admin/operator.
 
-Protected endpoints for admin and operator roles.
-
-### Create account
-
-```http
 POST /api/accounts
-
-Body:
-
-{
-  "customerId": "customer_id",
-  "initialBalance": 10000,
-  "currency": "MXN",
-  "dailyLimit": 10000,
-  "monthlyLimit": 80000
-}
-
-List accounts
 GET /api/accounts
-Get account detail
 GET /api/accounts/:id
-Get accounts by customer
 GET /api/accounts/customer/:customerId
+Movements
 
----
+Protected for admin/operator.
 
-## Movements endpoints
-
-Protected endpoint for admin and operator roles.
-
-### Get account movements
-
-```http
 GET /api/accounts/:accountId/movements
+Transfers
 
+Protected for admin/operator.
 
-## Transfers endpoints
-
-Protected endpoint for admin and operator roles.
-
-### Create transfer
-
-```http
 POST /api/transfers
 
-Body:
+Transfer statuses:
 
-{
-  "fromAccountId": "from_account_id",
-  "toAccountId": "to_account_id",
-  "amount": 5000,
-  "description": "Internal transfer test"
-}
-
-## Transfer risk engine
+completed
+pending_review
+rejected
+failed
+Transfer risk engine
 
 The transfer module includes a simple risk engine.
 
-A transfer can be:
-
-- completed
-- pending_review
-
 Risk rules:
 
-- Amount greater than or equal to 20000
-- Amount exceeds account daily limit
-- Suspicious words in description
+Amount greater than or equal to 20000
+Amount exceeds account daily limit
+Suspicious words in description
 
 Pending review transfers do not move money until an operator approves them.
 
-## Operations endpoints
+Operations
 
-Protected endpoints for admin and operator roles.
+Protected for admin/operator.
 
-### Pending review transfers
-
-```http
 GET /api/operations/transfers/pending-review
-Approve transfer
 PATCH /api/operations/transfers/:id/approve
-Reject transfer
 PATCH /api/operations/transfers/:id/reject
-
-## Operational blocking endpoints
-
-### Block customer
-
-```http
 PATCH /api/operations/customers/:id/block
-Block account
 PATCH /api/operations/accounts/:id/block
-Unblock account
 PATCH /api/operations/accounts/:id/unblock
+Dashboard
 
-## Dashboard endpoints
+Protected for admin/operator.
 
-Protected endpoint for admin and operator roles.
-
-### Dashboard summary
-
-```http
 GET /api/dashboard/summary
+Audit logs
 
-Header:
+Protected for admin/operator.
 
-Authorization: Bearer <admin_or_operator_token>
-
----
-
-# 12. Exportar colección y commit
-
-Exporta Postman reemplazando:
-
-```txt
-postman/Bankaool-FinCore-360-API.postman_collection.json
-
-## Audit logs endpoint
-
-Protected endpoint for admin and operator roles.
-
-### List audit logs
-
-```http
 GET /api/audit-logs
-
-Header:
-
-Authorization: Bearer <admin_or_operator_token>
 
 Tracked actions:
 
@@ -291,5 +147,33 @@ transfer_rejected
 customer_blocked
 account_blocked
 account_unblocked
+Postman
+
+The Postman collection is available at:
+
+postman/Bankaool-FinCore-360-API.postman_collection.json
+
+Recommended flow:
+
+Run seed
+Login admin/operator/customer seed users
+List customers
+List accounts
+Create normal transfer
+Create risk transfer
+Approve/reject pending transfer
+Review dashboard
+Review audit logs
+Notes
+
+This lab intentionally uses a standalone local MongoDB setup. Because of that, transfer operations do not use MongoDB transactions. In a production-like setup, MongoDB replica set transactions would be recommended for financial consistency.
+
 
 ---
+
+# 7. Exportar colección Postman
+
+Exporta de nuevo:
+
+```txt
+postman/Bankaool-FinCore-360-API.postman_collection.json
