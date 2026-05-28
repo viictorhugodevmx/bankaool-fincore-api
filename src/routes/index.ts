@@ -9,6 +9,7 @@ import movementRoutes from '../modules/movements/movement.routes';
 import transferRoutes from '../modules/transfers/transfer.routes';
 import operationRoutes from '../modules/operations/operation.routes';
 import dashboardRoutes from '../modules/dashboard/dashboard.routes';
+import auditRoutes from '../modules/audit/audit.routes';
 
 const router = Router();
 
@@ -55,5 +56,6 @@ router.use('/', movementRoutes);
 router.use('/transfers', transferRoutes);
 router.use('/operations', operationRoutes);
 router.use('/dashboard', dashboardRoutes);
+router.use('/audit-logs', auditRoutes);
 
 export default router;

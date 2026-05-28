@@ -247,3 +247,49 @@ Block account
 PATCH /api/operations/accounts/:id/block
 Unblock account
 PATCH /api/operations/accounts/:id/unblock
+
+## Dashboard endpoints
+
+Protected endpoint for admin and operator roles.
+
+### Dashboard summary
+
+```http
+GET /api/dashboard/summary
+
+Header:
+
+Authorization: Bearer <admin_or_operator_token>
+
+---
+
+# 12. Exportar colección y commit
+
+Exporta Postman reemplazando:
+
+```txt
+postman/Bankaool-FinCore-360-API.postman_collection.json
+
+## Audit logs endpoint
+
+Protected endpoint for admin and operator roles.
+
+### List audit logs
+
+```http
+GET /api/audit-logs
+
+Header:
+
+Authorization: Bearer <admin_or_operator_token>
+
+Tracked actions:
+
+transfer_created
+transfer_approved
+transfer_rejected
+customer_blocked
+account_blocked
+account_unblocked
+
+---
